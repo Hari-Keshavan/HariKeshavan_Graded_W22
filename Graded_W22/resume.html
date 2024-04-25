@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Resume</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+        }
+
+        .resume-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border-radius: 5px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 20px;
+            background-color: lightblue;
+            padding: 20px;
+            border-radius: 5px;
+        }
+
+        .profile-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background-color: #003300;
+            color: #fff;
+            font-size: 48px;
+            line-height: 120px;
+            margin: 0 auto 20px;
+        }
+
+        .container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+        }
+
+        .left-section {
+            flex-basis: calc(30% - 10px);
+            margin-right: 10px;
+            padding: 20px;
+            background-color: rgb(185, 228, 255);
+            border-radius: 5px;
+        }
+
+        .right-section {
+            flex-basis: calc(68% - 10px);
+            margin-left: 10px;
+            padding: 20px;
+            background-color: #f9f9f9;
+            border-radius: 5px;
+        }
+
+        .section {
+            margin-bottom: 20px;
+        }
+
+        .section h2 {
+            color: #003300;
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .section p,
+        .section ul {
+            color: #333;
+            font-size: 16px;
+            margin: 0;
+        }
+
+        .section ul {
+            padding-left: 20px;
+        }
+
+        .section ul li {
+            list-style: disc;
+            margin-bottom: 5px;
+        }
+
+        .section p {
+            margin-bottom: 10px;
+        }
+
+        .section.work-experience p:first-child,
+        .section.internship p:first-child {
+            font-weight: bold;
+        }
+
+        .hide {
+            display: none;
+        }
+
+        button {
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #4caf50;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        input[type="text"] {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            width: 200px;
+        }
+
+        #search-error,
+        #search-error-img {
+            color: red;
+        }
+
+        #applicant-details {
+            padding: 10px;
+            margin-bottom: 20px;
+        }
+
+        img {
+            max-width: 100%;
+        }
+
+        @media screen and (max-width: 768px) {
+            .left-section,
+            .right-section {
+                flex-basis: 100%;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="resume-container">
+        <h2>Applicant Resume</h2>
+        <button onclick="prevApp()" id="previousBtn" class="hide" data-action="previous">Previous</button>
+        <input type="text" id="job-search" placeholder="Search by Job">
+        <button onclick="jobSearch()">Search</button>
+        <button onclick="nextApp()" id="nextBtn" class="hide" data-action="next">Next</button>
+        <button onclick="logout()" type="button">Logout</button>
+        <p id="search-error"></p>
+        <p id="search-error-img"></p>
+        <div class="applicant-details" id="applicant-details"></div>
+    </div>
+
+    <script>
+        let appData;
+        let fApps;
+        let index = 0;
+        const applicantDetails = document.getElementById('applicant-details');
+        const jobSearchInput = document.getElementById('job-search');
+        const searchError = document.getElementById('search-error');
+        const searchError1 = document.getElementById('search-error-img');
+        const previousBtn = document.getElementById('previousBtn');
+        const nextBtn = document.getElementById('nextBtn');
+
+        async function loadappData() {
+            try {
+                const response = await fetch('http://localhost:3000/resume');
+                appData = await response.json();
+            } catch (error) {
+                console.error('Error loading JSON data:', error);
+            }
+        }
+        loadappData();
+
+        function displayApp() {
+            applicantDetails.innerHTML = '';
+            if (fApps.length === 0) {
+                searchError.innerHTML = '';
+                searchError1.innerHTML = '';
+
+                const profileIcon = document.createElement('img');
+                profileIcon.classList.add('profile-icon');
+                profileIcon.src = 'img1.png';
+                searchError.appendChild(profileIcon);
+                searchError1.textContent = 'Invalid search or No applications for this job';
+                return;
+            }
+            searchError.innerHTML = '';
+            searchError1.innerHTML = '';
+            var applicant = fApps[index];
+            const totalApplicants = fApps.length;
+
+            previousBtn.classList.toggle('hide', index === 0 || totalApplicants === 1);
+            nextBtn.classList.toggle('hide', index === totalApplicants - 1 || totalApplicants === 1);
+
+            const container = document.createElement('div');
+            container.classList.add('container');
+
+            const header = document.createElement('div');
+            header.classList.add('header');
+
+            const profileIcon = document.createElement('img');
+            profileIcon.classList.add('profile-icon');
+            if (applicant.basics.image == "") {
+                profileIcon.src = 'img2.png';
+            } else {
+                profileIcon.src = applicant.basics.image;
+            }
+
+            const nameHeading = document.createElement('h1');
+            nameHeading.textContent = applicant.basics.name;
+
+            const jobParagraph = document.createElement('p');
+            jobParagraph.textContent = "Applied For: " + applicant.basics.AppliedFor;
+
+            header.appendChild(profileIcon);
+            header.appendChild(nameHeading);
+            header.appendChild(jobParagraph);
+
+            const leftSection = document.createElement('div');
+            leftSection.classList.add('left-section');
+
+            const personalInfoSection = createSec('Personal Information', [
+                `Phone: ${applicant.basics.phone}`,
+                `Email: ${applicant.basics.email}`
+            ]);
+
+            const hobbiesSection = createSec('Hobbies', applicant.interests.hobbies);
+
+            const skillsSection = createSec('Technical Skills', applicant.skills.keywords);
+
+            leftSection.appendChild(personalInfoSection);
+            leftSection.appendChild(hobbiesSection);
+            leftSection.appendChild(skillsSection);
+
+            const rightSection = document.createElement('div');
+            rightSection.classList.add('right-section');
+
+            const workExperienceSection = createSec('Work Experience', [
+                `${applicant.work['Company Name']} (${applicant.work['Start Date']} to ${applicant.work['End Date']})`,
+                `${applicant.work.Position}`,
+                `${applicant.work.Summary}`
+            ]);
+
+            const internshipSection = createSec('Internship', [
+                `${applicant.Internship['Company Name']} (${applicant.Internship['Start Date']} to ${applicant.Internship['End Date']})`,
+                `${applicant.Internship.Position}`,
+                `${applicant.Internship.Summary}`
+            ]);
+
+            const projectsSection = createSec('Projects', [`${applicant.projects.name}: ${applicant.projects.description}`]);
+
+            const educationSection = createSec('Education', [
+                `UG: ${applicant.education.UG.institute}, ${applicant.education.UG.course}`,
+                `CGPA: ${applicant.education.UG.cgpa}`,
+                `Senior Secondary: ${applicant.education['Senior Secondary'].institute}`,
+                `CGPA: ${applicant.education['Senior Secondary'].cgpa}`,
+                `High School: ${applicant.education['High School'].institute}`,
+                `CGPA: ${applicant.education['High School'].cgpa}`
+            ]);
+
+            const achievementsSection = createSec('Achievements', applicant.achievements.Summary);
+
+            rightSection.appendChild(workExperienceSection);
+            rightSection.appendChild(internshipSection);
+            rightSection.appendChild(projectsSection);
+            rightSection.appendChild(educationSection);
+            rightSection.appendChild(achievementsSection);
+
+            container.appendChild(header);
+            container.appendChild(leftSection);
+            container.appendChild(rightSection);
+
+            applicantDetails.appendChild(container);
+        }
+
+        function createSec(title, content) {
+            const section = document.createElement('div');
+            section.classList.add('section');
+
+            const heading = document.createElement('h2');
+            heading.textContent = title;
+
+            const list = document.createElement('ul');
+
+            if (Array.isArray(content)) {
+                content.forEach(item => {
+                    const listItem = document.createElement('li');
+                    listItem.textContent = item;
+                    list.appendChild(listItem);
+                });
+            } else {
+                const listItem = document.createElement('li');
+                listItem.textContent = content;
+                list.appendChild(listItem);
+            }
+
+            section.appendChild(heading);
+            section.appendChild(list);
+
+            return section;
+        }
+
+        function prevApp() {
+            if (index > 0) {
+                index--;
+                displayApp();
+            }
+        }
+
+        function nextApp() {
+            if (index < fApps.length - 1) {
+                index++;
+                displayApp();
+            }
+        }
+
+        function jobSearch() {
+            const searchValue = jobSearchInput.value.toLowerCase();
+            fApps = appData.filter(applicant => applicant.basics.AppliedFor.toLowerCase() === searchValue);
+            index = 0;
+            displayApp();
+        }
+
+        function logout() {
+            localStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+
+</html>
